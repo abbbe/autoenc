@@ -50,4 +50,4 @@ def build_conv_autoencoder(inputShape, latentDim):
     opt = optimizers.Adam(learning_rate=0.005)
     autoencoder.compile(optimizer=opt, loss='mse')
     
-    return autoencoder, encoder_model, decoder_model
+    return {'ae': autoencoder, 'enc': encoder_model, 'dec': decoder_model }
