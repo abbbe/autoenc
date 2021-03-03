@@ -59,16 +59,20 @@ class VAE(keras.Model):
             "kl_loss": self.kl_loss_tracker.result(),
         }
 
-def build_encoder(input_img, latentDim):
+def build_encoder(input_img, latentDim, build_params):
     x = input_img
 
     #print("before enc conv=" + str(x))
-    x = layers.Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((2, 2), padding='same')(x)
-    x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((2, 2), padding='same')(x)
-    x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((2, 2), padding='same')(x)
+    for conv in build_params['convs']:
+        x = layers.Conv2D(conv, (3, 3), activation='relu', padding='same')(x)
+        x = layers.MaxPooling2D((2, 2), padding='same')(x)
+
+#    x = layers.Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+#    x = layers.MaxPooling2D((2, 2), padding='same')(x)
+#    x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+#    x = layers.MaxPooling2D((2, 2), padding='same')(x)
+#    x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+#    x = layers.MaxPooling2D((2, 2), padding='same')(x)
     #print("after enc conv=" + str(x))
 
     volumeSize = K.int_shape(x)
@@ -82,19 +86,25 @@ def build_encoder(input_img, latentDim):
     
     return encoder, volumeSize
 
-def build_decoder(encoded, volumeSize):
+def build_decoder(encoded, volumeSize, build_params):
     x = encoded
 
     x = layers.Dense(np.prod(volumeSize[1:]))(encoded)
     x = layers.Reshape((volumeSize[1], volumeSize[2], volumeSize[3]))(x)
 
     #print("before dec conv=" + str(x))
-    x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = layers.UpSampling2D((2, 2))(x)
-    x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = layers.UpSampling2D((2, 2))(x)
-    x = layers.Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = layers.UpSampling2D((2, 2))(x)
+    rev_convs = list(build_params['convs'])
+    rev_convs.reverse()
+    for conv in rev_convs:
+        x = layers.Conv2D(conv, (3, 3), activation='relu', padding='same')(x)
+        x = layers.UpSampling2D((2, 2))(x)
+    #x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+    #x = layers.UpSampling2D((2, 2))(x)
+    #x = layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+    #x = layers.UpSampling2D((2, 2))(x)
+    #x = layers.Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    #x = layers.UpSampling2D((2, 2))(x)
+    
     x = layers.Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
     #print("after dec conv=" + str(x))
 
@@ -102,12 +112,12 @@ def build_decoder(encoded, volumeSize):
     decoder = keras.Model(encoded, decoded, name="decoder")
     return decoder
 
-def build_autoencoder(inputShape, latentShape):
+def build_autoencoder(inputShape, latentShape, build_params):
     inputs = layers.Input(shape=inputShape)
-    encoder_model, volumeSize = build_encoder(inputs, latentShape)
+    encoder_model, volumeSize = build_encoder(inputs, latentShape, build_params)
 
     latent = layers.Input(shape=latentShape)
-    decoder_model = build_decoder(latent, volumeSize)
+    decoder_model = build_decoder(latent, volumeSize, build_params)
 
     autoencoder_model = VAE(encoder_model, decoder_model, name="autoencoder")
     autoencoder_model.compile(optimizer=keras.optimizers.Adam())
