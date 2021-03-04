@@ -1,10 +1,11 @@
 import numpy as np
-import gym 
 
 import os
 os.environ['SDL_VIDEODRIVER']='dummy'
 import pygame
 pygame.display.set_mode((600,600))
+
+import gym 
 
 import skimage.transform
 
