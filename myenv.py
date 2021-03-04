@@ -46,13 +46,14 @@ class MyEnv:
         return img_array
 
     def process_raw_image(self, img_array):
-        # condition the blue plane, highlight the endpoint circle and the links
+        # take inverted red plane
         y = img_array[...,0]
 
         # resize
         y = skimage.transform.resize(y, (self.D, self.D))
 
-        # normalize to [0, 1]
+        # invert and normalize to [0, 1]
+        y *= -1
         y = (y - np.min(y))/np.ptp(y)
 
         # add a dummy channel axis
