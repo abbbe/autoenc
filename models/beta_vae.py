@@ -37,25 +37,26 @@ class VAE(keras.Model):
         ]
 
     def train_step(self, data):
+        def gaussian_nll(mu, log_sigma, x):
+            return 0.5 * ((x - mu) / tf.math.exp(log_sigma)) ** 2 + log_sigma + 0.5 * np.log(2 * np.pi)
+        
         with tf.GradientTape() as tape:
             z_mean, z_log_var, z = self.encoder(data)
             reconstruction = self.decoder(z)
-            reconstruction_loss = tf.reduce_mean(
-                tf.reduce_sum(
-                    keras.losses.binary_crossentropy(data, reconstruction), axis=(1, 2)
-                )
-            )
-            kl_loss = -0.5 * (1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var))
-            kl_loss = tf.reduce_mean(tf.reduce_sum(kl_loss, axis=1))
-            total_loss = reconstruction_loss + kl_loss
+
+            log_sigma = tf.math.log(tf.math.sqrt(tf.reduce_mean((data - reconstruction) ** 2, [0, 1, 2, 3], keepdims=True)))
+            re_loss = tf.reduce_sum(gaussian_nll(reconstruction, log_sigma, data))
+            kl_loss = -tf.reduce_sum(0.5 * (1 + z_log_var - z_mean ** 2 - tf.math.exp(z_log_var)))
+
+            total_loss = re_loss + kl_loss
         grads = tape.gradient(total_loss, self.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
         self.total_loss_tracker.update_state(total_loss)
-        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
+        self.reconstruction_loss_tracker.update_state(re_loss)
         self.kl_loss_tracker.update_state(kl_loss)
         return {
             "loss": self.total_loss_tracker.result(),
-            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
+            "re_loss": self.reconstruction_loss_tracker.result(),
             "kl_loss": self.kl_loss_tracker.result(),
         }
 
