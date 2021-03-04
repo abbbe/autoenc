@@ -1,0 +1,2 @@
+model_checkpoint_path: "convs_16_8_8-epochs_50-0-dec.h5w"
+all_model_checkpoint_paths: "convs_16_8_8-epochs_50-0-dec.h5w"
