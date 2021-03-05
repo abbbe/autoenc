@@ -13,7 +13,7 @@ TIP_RADIUS = 3
 JOINT_RADIUS = 3
 INIT_THETA = np.array([0, 0])
 
-class MyEnv:
+class TwoBallsEnv:
     def __init__(self, D=64):
         self.D = D
         self.set_window_size(SCREEN_SIZE)
