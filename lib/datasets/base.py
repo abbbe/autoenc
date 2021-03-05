@@ -1,10 +1,11 @@
+import os
 import numpy as np
 import pandas as pd
 
 # spawn gym environment
 #from env import ArmRobotEnv
 #env = ArmRobotEnv()
-DATASETSDIR = "output/datasets"
+DATASETSDIR = "output/"
 
 from lib.envs.myenv import MyEnv
 env = MyEnv()
@@ -27,4 +28,4 @@ def xy_generator(x_gen):
 
         yield x, y
 
-store = pd.HDFStore('store.h5')
+store = pd.HDFStore(os.path.join(DATASETSDIR, 'dataset.h5'))
