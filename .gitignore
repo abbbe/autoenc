@@ -3,3 +3,4 @@ gym-robot-arm/
 **/.ipynb_checkpoints/
 .vscode/
 **/__pycache__/
+store.h5
