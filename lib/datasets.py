@@ -13,7 +13,7 @@ def load_dataset(env_name, dataset_name):
     
 def load_datasets(env_name):
     train = load_dataset(env_name, 'linspaced_250k')
-    val = load_dataset(env_name, 'rand_1k')
+    test = load_dataset(env_name, 'rand_1k')
     grid = load_dataset(env_name, 'grid_100_1000')
     
-    return {'train': train, 'val': val, 'grid': grid}
+    return {'train': train, 'test': test, 'grid': grid}
